@@ -91,7 +91,7 @@ GameEngine = Class.extend({
         this.drawTiles();
         this.drawBonuses();
 
-        this.spawnBots();
+        //this.spawnBots();
         this.spawnPlayers();
 
         // Toggle sound

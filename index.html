@@ -6,6 +6,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
     <meta property="og:image" content="http://matousskala.cz/files/bomberman_screen.png" />
 
+
     <script type="text/javascript" src="bower_components/EaselJS/lib/easeljs-0.8.1.min.js"></script>
     <script type="text/javascript" src="bower_components/PreloadJS/lib/preloadjs-0.6.1.min.js"></script>
     <script type="text/javascript" src="bower_components/SoundJS/lib/soundjs-0.6.1.min.js"></script>
@@ -21,6 +22,10 @@
     <script type="text/javascript" src="js/Menu.js"></script>
     <script type="text/javascript" src="js/InputEngine.js"></script>
     <script type="text/javascript" src="js/GameEngine.js"></script>
+
+    <script src="https://simplewebrtc.com/latest-v2.js"></script>
+     <script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
+
 
     <link rel="stylesheet" type="text/css" href="bower_components/bootstrap/docs/assets/css/bootstrap.css" />
     <link rel="stylesheet" type="text/css" href="css/style.css" />
@@ -63,5 +68,58 @@
             </p>
         </div>
     </div>
+    <script>
+
+    window.BUS = {};
+
+    var webrtc = new SimpleWebRTC({
+        localVideoEl: '',
+        remoteVideosEl: '',
+        autoRequestMedia: false,
+        receiveMedia: {
+            mandatory: {
+                OfferToReceiveAudio: false,
+                OfferToReceiveVideo: false
+            }
+        }
+    });
+
+    webrtc.on('connectionReady', function (sessionId) {
+    // ...
+        console.log("ready");
+        webrtc.joinRoom('myroom');
+
+
+
+    });
+    //  webrtc.sendToAll("chat", {"hola": "pablo"});
+
+    $(window.BUS).bind("send.keydown",function(e, action) {
+            webrtc.sendToAll("movement", {"type": "keydown", "action": action});
+    });
+    
+    $(window.BUS).bind("send.keyup",function(e, action) {
+            webrtc.sendToAll("movement", {"type": "keyup", "action": action});
+    });
+
+    webrtc.connection.on('message', function (data) {
+        if(data.type === "movement") {
+            var movement = data.payload;
+            $(window.BUS).trigger("remote."+movement.type, movement.action);
+            console.log("remote."+movement.type, movement.action);
+        }
+    });
+
+    webrtc.on('iceFailed', function (peer) {
+        console.log('local fail', peer);
+    });
+
+    // remote p2p/ice failure
+    webrtc.on('connectivityError', function (peer) {
+        console.log('local fail', peer);
+    });
+
+
+    </script>
 </body>
 </html>

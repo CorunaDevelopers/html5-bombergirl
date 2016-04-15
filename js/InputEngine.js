@@ -14,6 +14,7 @@ InputEngine = Class.extend({
     listeners: [],
 
     init: function() {
+
     },
 
     setup: function() {
@@ -24,15 +25,27 @@ InputEngine = Class.extend({
         this.bind(32, 'bomb');
         this.bind(18, 'bomb');
 
-        this.bind(87, 'up2');
-        this.bind(65, 'left2');
-        this.bind(83, 'down2');
-        this.bind(68, 'right2');
-        this.bind(16, 'bomb2');
+        //this.bind(87, 'up2');
+        //this.bind(65, 'left2');
+        //this.bind(83, 'down2');
+        //this.bind(68, 'right2');
+        //this.bind(16, 'bomb2');
 
         this.bind(13, 'restart');
         this.bind(27, 'escape');
         this.bind(77, 'mute');
+
+        var self = this;
+
+        // $(window.BUS).trigger("remote.keyup", "up2");
+        $(window.BUS).bind("remote.keyup",function(e, movement) {
+            self.doKeyUp(movement);
+        });
+
+        // $(window.BUS).trigger("remote.keydown", "up2");
+        $(window.BUS).bind("remote.keydown",function(e, movement) {
+            self.doKeyDown(movement);
+        });
 
         document.addEventListener('keydown', this.onKeyDown);
         document.addEventListener('keyup', this.onKeyUp);
@@ -40,16 +53,20 @@ InputEngine = Class.extend({
 
     onKeyDown: function(event) {
         var action = gInputEngine.bindings[event.keyCode];
+        console.log(action);
         if (action) {
-            gInputEngine.actions[action] = true;
+            gInputEngine.doKeyDown(action);
+            $(window.BUS).trigger("send.keydown", action);
             event.preventDefault();
         }
         return false;
     },
 
-    onKeyUp: function(event) {
-        var action = gInputEngine.bindings[event.keyCode];
-        if (action) {
+    doKeyDown: function (action) {
+            gInputEngine.actions[action] = true;
+    },
+
+    doKeyUp: function (action) {
             gInputEngine.actions[action] = false;
 
             var listeners = gInputEngine.listeners[action];
@@ -59,6 +76,14 @@ InputEngine = Class.extend({
                     listener();
                 }
             }
+    },
+
+    onKeyUp: function(event) {
+        var action = gInputEngine.bindings[event.keyCode];
+        if (action) {
+            gInputEngine.doKeyUp(action);
+
+            $(window.BUS).trigger("send.keyup", action);
             event.preventDefault();
         }
         return false;
